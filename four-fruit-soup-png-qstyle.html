@@ -1,0 +1,912 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>四果汤 · 极致精致版 DIY</title>
+<style>
+:root{
+  --bg-gradient: linear-gradient(135deg, #fff4eb 0%, #fff9f2 50%, #fbe8dc 100%);
+  --ink: #52382f;
+  --muted: #8c7063;
+  --primary-pink: #f48fb1;
+  --primary-pink-hover: #ec6b94;
+  --card-bg: rgba(255, 255, 255, 0.88);
+  --shadow-main: 0 20px 50px rgba(100, 72, 61, 0.12);
+  --shadow-sm: 0 8px 20px rgba(100, 72, 61, 0.08);
+}
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%;font-family:system-ui,-apple-system,"Microsoft YaHei","PingFang SC",sans-serif;color:var(--ink)}
+body{
+  background:
+    radial-gradient(circle at 15% 15%, #ffffff 0 3%, transparent 3.5%),
+    radial-gradient(circle at 85% 25%, #ffffff 0 2.5%, transparent 3%),
+    radial-gradient(circle at 50% 80%, #ffffff 0 4%, transparent 4.5%),
+    var(--bg-gradient);
+  overflow-x:hidden;
+}
+button{font:inherit;border:0;color:inherit;cursor:pointer}
+button,.style-card,.ingredient,.sugar-option,.drag-item{
+  transition:transform .22s cubic-bezier(.34,1.56,.64,1),box-shadow .22s,filter .22s
+}
+button:hover,.style-card:hover,.ingredient:hover,.sugar-option:hover,.drag-item:hover{
+  transform:translateY(-5px) scale(1.03);
+  filter:brightness(1.02);
+}
+button:active,.style-card:active,.ingredient:active,.sugar-option:active,.drag-item:active{
+  transform:scale(.95)
+}
+
+.scene{display:none;min-height:100vh;padding:24px 32px;position:relative;overflow:hidden}
+.scene.active{display:flex;flex-direction:column;animation:sceneIn .5s cubic-bezier(0.16, 1, 0.3, 1) both}
+@keyframes sceneIn{from{opacity:0;transform:translateY(24px) scale(0.98)}to{opacity:1;transform:none}}
+
+.header{width:min(1300px,100%);margin:0 auto 16px;display:flex;justify-content:space-between;align-items:center;z-index:10}
+.logo{font-size:clamp(26px,3.2vw,40px);font-weight:950;letter-spacing:2px;background:linear-gradient(135deg, #e57373, #ba68c8);-webkit-background-clip:text;-webkit-text-fill-color:transparent;text-shadow:0 4px 12px rgba(229,115,115,0.2)}
+.logo small{display:block;font-size:10px;letter-spacing:5px;color:var(--muted);opacity:.7;margin-top:4px;-webkit-text-fill-color:initial}
+.pill{padding:10px 18px;border-radius:999px;background:rgba(255,255,255,0.9);backdrop-filter:blur(8px);border:2px solid #ffffff;box-shadow:var(--shadow-sm);font-weight:600}
+
+.hero{width:min(1100px,100%);margin:auto;text-align:center;z-index:2}
+.hero-art{height:120px;display:flex;align-items:center;justify-content:center;gap:24px}
+.hero-art img{width:100px;height:100px;object-fit:contain;filter:drop-shadow(0 12px 10px rgba(100,72,61,0.15));animation:float 3s ease-in-out infinite}
+.hero-art img:nth-child(2){animation-delay:.4s}
+.hero h1{font-size:clamp(44px,7.5vw,80px);line-height:1.1;margin:10px 0 14px;font-weight:950}
+.hero h1 span{background:linear-gradient(135deg, #ff8a65, #e57373);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.hero p{max-width:640px;margin:0 auto 32px;color:var(--muted);line-height:1.8;font-size:16px}
+
+.style-grid{display:grid;grid-template-columns:repeat(2,minmax(280px,1fr));gap:32px;max-width:920px;margin:auto}
+.style-card{min-height:410px;padding:32px;border:4px solid #ffffff;border-radius:44px;box-shadow:var(--shadow-main);display:flex;flex-direction:column;align-items:center;justify-content:center;position:relative;overflow:hidden;background:rgba(255,255,255,0.85);backdrop-filter:blur(10px)}
+.style-card.zhangzhou{background:linear-gradient(145deg, #fff9ec, #ffe6c7)}
+.style-card.quanzhou{background:linear-gradient(145deg, #f0fbff, #d6f2ea)}
+.style-card:before{content:"";position:absolute;width:240px;height:240px;border-radius:50%;background:rgba(255,255,255,0.6);top:-120px;right:-80px}
+.style-image{width:235px;height:185px;object-fit:contain;z-index:1;filter:drop-shadow(0 16px 12px rgba(100,72,61,0.18))}
+.style-title{font-size:28px;margin-top:14px;font-weight:800}
+.style-desc{font-size:14px;color:var(--muted);margin:6px 0 20px;font-weight:500}
+.choose-btn{background:#ffffff;padding:14px 32px;border-radius:999px;box-shadow:0 10px 25px rgba(100,72,61,0.12);z-index:2;font-weight:700;color:var(--ink)}
+.hint{margin-top:26px;color:var(--muted);font-size:13px;letter-spacing:1px}
+
+#scene2{background:linear-gradient(135deg,#f4ede4,#faf5ee)}
+.worktop{width:min(1320px,100%);margin:auto;flex:1;display:grid;grid-template-columns:310px 1fr 300px;gap:22px;align-items:stretch}
+.panel{background:rgba(255, 253, 248, 0.9);backdrop-filter:blur(10px);border:3px solid #ffffff;border-radius:32px;box-shadow:var(--shadow-main);padding:20px}
+.panel-title{font-size:20px;margin-bottom:14px;font-weight:800}
+.ingredients{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;max-height:70vh;overflow:auto;padding-right:4px}
+.ingredients::-webkit-scrollbar{width:6px}
+.ingredients::-webkit-scrollbar-thumb{background:#e8dcd2;border-radius:999px}
+.ingredient{border:2px solid #ffffff;border-radius:22px;background:rgba(255,255,255,0.8);padding:10px 8px;text-align:center;box-shadow:0 6px 15px rgba(100,72,61,0.06);cursor:pointer;user-select:none}
+.ingredient-image-wrap{width:80px;height:70px;margin:0 auto 4px;display:flex;align-items:center;justify-content:center}
+.ingredient-image{width:100%;height:100%;object-fit:contain;filter:drop-shadow(0 5px 6px rgba(100,72,61,0.15));pointer-events:none;transition:transform .25s cubic-bezier(.3,1.6,.4,1)}
+.ingredient:hover .ingredient-image{transform:scale(1.15) rotate(-5deg)}
+.ingredient .name{font-size:12px;display:block;line-height:1.4;font-weight:600}
+.counter{display:inline-flex;min-width:26px;height:24px;padding:0 7px;align-items:center;justify-content:center;background:#ffcdd2;color:#b71c1c;border-radius:999px;font-size:11px;margin-top:6px;font-weight:700}
+
+.center{display:flex;flex-direction:column;align-items:center;justify-content:center;min-width:0}
+.message{text-align:center;margin-bottom:12px}
+.message strong{font-size:24px;font-weight:900}
+.message span{display:block;color:var(--muted);font-size:13px;margin-top:4px}
+
+.bowl-stage{width:min(560px,92vw);height:520px;position:relative;display:flex;align-items:center;justify-content:center}
+.table-shadow{position:absolute;bottom:35px;width:390px;height:52px;border-radius:50%;background:rgba(100,72,61,0.15);filter:blur(14px)}
+.glass-bowl{width:440px;height:310px;position:relative;border:8px solid rgba(255,255,255,0.9);border-radius:36px 36px 52% 52%;background:linear-gradient(180deg, rgba(255,255,255,0.6) 0%, rgba(220,248,255,0.3) 100%);box-shadow:inset 0 12px 30px rgba(255,255,255,0.9), inset 0 -22px 40px rgba(139,214,227,0.25), 0 22px 40px rgba(100,72,61,0.16);overflow:visible}
+.bowl-rim{position:absolute;width:420px;height:86px;top:-26px;left:2px;border-radius:50%;border:7px solid rgba(255,255,255,0.95);background:rgba(255,255,255,0.35);z-index:25;pointer-events:none}
+.bowl-fill{position:absolute;inset:0;overflow:visible}
+.ingredient-pieces{position:absolute;inset:0;pointer-events:none;z-index:4}
+
+/* 超大尺寸小料：整碗及上方半碗完美物理掉落堆叠 */
+.piece{
+  position:absolute;
+  width:84px;
+  height:74px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  animation:gravityDrop .55s cubic-bezier(.25, 1.5, .5, 1) both;
+  filter:drop-shadow(0 6px 8px rgba(100,72,61,0.3));
+}
+.piece img{width:100%;height:100%;object-fit:contain}
+@keyframes gravityDrop{
+  0%{opacity:0;transform:translateY(-180px) scale(0.2) rotate(-60deg);}
+  70%{opacity:1;}
+  100%{opacity:1;}
+}
+
+.glass-shine{position:absolute;width:28px;height:195px;background:rgba(255,255,255,0.75);transform:rotate(15deg);left:48px;top:40px;border-radius:999px;pointer-events:none;z-index:26}
+
+/* 漳州版：冰沙与真实精美冰块掉落动态 */
+.ice-drop{
+  position:absolute;
+  width:42px;
+  height:42px;
+  background:radial-gradient(circle at 30% 30%, #ffffff 0%, #c5eaf5 85%);
+  border-radius:12px;
+  border:2.5px solid #ffffff;
+  box-shadow:0 10px 20px rgba(100,72,61,0.28);
+  z-index:18;
+  pointer-events:none;
+  animation:iceFallAnim .75s cubic-bezier(0.25, 1.4, 0.4, 1) forwards;
+}
+@keyframes iceFallAnim{
+  0%{transform:translateY(-140px) scale(0.2) rotate(0deg);opacity:0;}
+  60%{transform:translateY(18px) scale(1.18) rotate(30deg);opacity:1;}
+  100%{transform:translateY(0) scale(1) rotate(12deg);opacity:0.96;}
+}
+
+/* 泉州版：清凉冰水流倾倒与高清水花波纹动态 */
+.water-pour-stream{
+  position:absolute;
+  top:-100px;
+  left:50%;
+  width:28px;
+  height:130px;
+  background:linear-gradient(to bottom, rgba(197,234,245,0), rgba(197,234,245,0.85) 45%, rgba(141,214,227,0.95));
+  border-radius:14px;
+  transform:translateX(-50%);
+  z-index:22;
+  pointer-events:none;
+  animation:waterPourAnim .85s ease forwards;
+}
+@keyframes waterPourAnim{
+  0%{transform:translateX(-50%) scaleY(0);opacity:0;}
+  40%{transform:translateX(-50%) scaleY(1);opacity:1;}
+  100%{transform:translateX(-50%) scaleY(1);opacity:0;}
+}
+.water-wave-effect{
+  position:absolute;
+  inset:0;
+  border-radius:36px;
+  background:radial-gradient(circle at 50% 50%, rgba(255,255,255,0.95) 0%, rgba(197,234,245,0.65) 55%, rgba(141,214,227,0.75) 100%);
+  opacity:0;
+  z-index:3;
+  pointer-events:none;
+  animation:waveSplash 0.95s ease forwards;
+}
+@keyframes waveSplash{
+  0%{transform:scale(0.8);opacity:0;}
+  50%{transform:scale(1.06);opacity:1;}
+  100%{transform:scale(1);opacity:0.92;}
+}
+
+.sugar-box{margin-top:8px;text-align:center}
+.sugar-title{font-size:13px;color:var(--muted);margin-bottom:8px;font-weight:600}
+.sugar-options{display:flex;gap:8px;justify-content:center}
+.sugar-option{padding:9px 16px;border-radius:999px;background:#ffffff;border:2px solid transparent;font-size:12px;font-weight:700;box-shadow:0 4px 10px rgba(100,72,61,0.05)}
+.sugar-option.selected{border-color:#f48fb1;background:#ffebee;color:#c2185b}
+
+.right-info{display:flex;flex-direction:column;gap:14px}
+.tip{background:rgba(255,255,255,0.85);border-radius:22px;padding:16px;box-shadow:var(--shadow-sm);border:2px solid #ffffff}
+.tip b{display:block;margin-bottom:6px;font-size:14px;font-weight:800}
+.tip small{color:var(--muted);line-height:1.6;font-size:12px}
+.finish-ingredients{margin-top:auto;padding:14px;border-radius:20px;background:#fcf3ec;font-size:12px;line-height:1.7;font-weight:600}
+.next-btn{width:100%;padding:16px;border-radius:20px;background:linear-gradient(135deg, #f48fb1, #ec6b94);color:#fff;box-shadow:0 10px 25px rgba(236,107,148,0.35);font-weight:900;font-size:15px;letter-spacing:1px}
+
+.fly-piece{position:fixed;z-index:999;pointer-events:none;width:84px;height:74px;object-fit:contain;filter:drop-shadow(0 6px 6px rgba(100,72,61,0.2));animation:flyToBowl .7s cubic-bezier(.25,1.4,.45,1) forwards}
+@keyframes flyToBowl{0%{opacity:1;transform:translate(0,0) scale(1)}100%{opacity:0;transform:translate(var(--dx),var(--dy)) scale(.4) rotate(180deg)}}
+
+#scene3{background:linear-gradient(145deg,#d8f4fb,#fff8ed 55%,#d8f4e6)}
+.soul-stage{flex:1;display:flex;align-items:center;justify-content:center}
+.soul-card{width:min(940px,100%);min-height:600px;background:rgba(255,255,255,0.9);backdrop-filter:blur(12px);border:4px solid #fff;border-radius:46px;box-shadow:var(--shadow-main);padding:32px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;position:relative;overflow:hidden}
+.soul-hint{padding:10px 22px;border-radius:999px;background:#fff8e1;color:#f57f17;margin-bottom:14px;font-weight:700;box-shadow:0 4px 12px rgba(245,127,23,0.1)}
+.soul-card h2{font-size:36px;margin:0 0 8px;font-weight:900}
+.soul-card p{color:var(--muted);margin:0 0 18px;font-size:15px}
+.soul-object{height:360px;width:100%;display:flex;align-items:center;justify-content:center;position:relative}
+.drag-item{cursor:grab;user-select:none;position:relative;z-index:3}
+.drag-image{width:270px;height:310px;object-fit:contain;filter:drop-shadow(0 22px 16px rgba(100,72,61,0.22));animation:float 2.6s ease-in-out infinite}
+.drag-target{position:absolute;bottom:12px;width:340px;height:130px;border:4px dashed #f48fb1;border-radius:50%;background:rgba(255,255,255,0.6);display:flex;align-items:center;justify-content:center;color:#ec6b94;font-weight:800}
+.drag-target.active{background:rgba(255,235,238,0.9);transform:scale(1.06)}
+.soul-progress{font-size:13px;color:var(--muted);font-weight:600}
+
+#scene4{background:linear-gradient(135deg,#fce4ec,#fff9e6,#e8f5e9);align-items:center;justify-content:center}
+.showcase{width:min(1000px,100%);min-height:700px;background:rgba(255,255,255,0.9);backdrop-filter:blur(12px);border:4px solid #fff;border-radius:48px;box-shadow:var(--shadow-main);display:flex;flex-direction:column;align-items:center;justify-content:center;position:relative;overflow:hidden;padding:30px}
+.showcase h2{font-size:40px;margin:0 0 6px;z-index:3;font-weight:950}
+.showcase p{color:var(--muted);margin:0 0 16px;z-index:3;font-size:15px}
+
+.final-bowl-wrap{position:relative;width:540px;height:460px;display:flex;align-items:center;justify-content:center}
+.final-bowl{width:440px;height:310px;border:8px solid rgba(255,255,255,0.95);border-radius:36px 36px 52% 52%;background:linear-gradient(180deg, rgba(255,255,255,0.5) 0%, rgba(220,248,255,0.6) 100%);box-shadow:inset 0 12px 30px rgba(255,255,255,0.9),0 32px 50px rgba(100,72,61,0.22);position:relative;overflow:visible;animation:heroBowl 1s cubic-bezier(.2,1.4,.4,1) both}
+.final-rim{position:absolute;top:-24px;left:6px;width:420px;height:86px;border:7px solid #fff;border-radius:50%;background:rgba(255,255,255,0.4);z-index:25;pointer-events:none}
+.final-pieces{position:absolute;inset:0;pointer-events:none;z-index:4}
+@keyframes heroBowl{from{transform:scale(.5);opacity:0}to{transform:scale(1);opacity:1}}
+
+.final-spoon{position:absolute;z-index:28;right:40px;top:-280px;width:130px;height:360px;display:flex;justify-content:center;transform:rotate(12deg);animation:spoonDrop 1.3s .35s cubic-bezier(.2,1.5,.4,1) forwards}
+.final-spoon img{width:100%;height:100%;object-fit:contain;filter:drop-shadow(0 12px 8px rgba(100,72,61,0.32))}
+@keyframes spoonDrop{0%{top:-290px;transform:rotate(20deg) scale(.72)}65%{top:14px;transform:rotate(-3deg) scale(1.08)}82%{top:-1px;transform:rotate(4deg) scale(.97)}100%{top:8px;transform:rotate(2deg) scale(1)}}
+
+.sparkles{position:absolute;inset:0;pointer-events:none}
+.spark{position:absolute;width:30px;height:30px;background-image:url("images/sparkle.png");background-size:contain;background-repeat:no-repeat;animation:fall 3s ease-in-out infinite}
+@keyframes fall{0%{opacity:0;transform:translateY(-80px) rotate(0)}20%{opacity:1}100%{opacity:0;transform:translateY(700px) rotate(250deg)}}
+
+.final-info{text-align:center;z-index:3;display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:10px}
+.tag{display:inline-block;background:#fff8e1;color:#f57f17;padding:8px 18px;border-radius:999px;font-size:13px;font-weight:700;box-shadow:0 4px 12px rgba(245,127,23,0.08)}
+
+.actions{display:flex;gap:14px;margin-top:24px;z-index:5}
+.action{padding:14px 28px;border-radius:999px;background:#fff;box-shadow:0 10px 25px rgba(100,72,61,0.12);font-weight:800}
+.action.primary{background:linear-gradient(135deg, #f48fb1, #ec6b94);color:#fff;box-shadow:0 10px 25px rgba(236,107,148,0.35)}
+
+.toast{position:fixed;left:50%;bottom:35px;transform:translateX(-50%) translateY(30px);background:rgba(82,56,47,0.95);color:#fff;padding:14px 26px;border-radius:999px;opacity:0;pointer-events:none;transition:.35s;z-index:2000;font-weight:700;box-shadow:0 10px 30px rgba(0,0,0,0.2)}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+.modal{position:fixed;inset:0;background:rgba(82,56,47,0.6);backdrop-filter:blur(8px);display:none;align-items:center;justify-content:center;z-index:3000;padding:20px}
+.modal.show{display:flex}
+.card-preview{width:min(460px,95vw);padding:28px;background:#fffdfa;border-radius:38px;box-shadow:0 30px 80px rgba(0,0,0,0.25);text-align:center;border:6px solid #fff}
+.card-preview h3{margin:6px 0;font-size:28px;font-weight:900}
+.card-bowl{margin:20px auto;width:280px;height:190px;border-radius:28px 28px 52% 52%;border:7px solid #fff;background:linear-gradient(180deg,#bceff4,#ffe6bd);box-shadow:inset 0 12px 22px rgba(255,255,255,0.9),0 18px 30px rgba(100,72,61,0.18);display:flex;align-items:flex-end;justify-content:center;position:relative;overflow:hidden}
+.card-bowl img{position:absolute;width:58px;height:50px;object-fit:contain}
+.close{padding:12px 26px;border-radius:999px;background:linear-gradient(135deg, #f48fb1, #ec6b94);color:#fff;font-weight:800;margin-top:10px}
+
+@keyframes float{50%{transform:translateY(-12px) rotate(1.5deg)}}
+
+@media(max-width:1050px){
+  .worktop{grid-template-columns:1fr;max-width:740px}
+  .ingredients{grid-template-columns:repeat(4,1fr);max-height:none}
+  .right-info{display:grid;grid-template-columns:1fr 1fr}
+}
+@media(max-width:700px){
+  .scene{padding:18px 14px}
+  .style-grid{grid-template-columns:1fr}
+  .style-card{min-height:330px}
+  .ingredients{grid-template-columns:repeat(3,1fr)}
+  .glass-bowl{width:340px;height:240px}
+  .bowl-rim{width:320px}
+  .final-bowl{width:340px;height:240px}
+  .final-rim{width:320px}
+  .final-bowl-wrap{width:380px;height:380px}
+  .final-spoon{right:8px;width:100px;height:310px}
+  .right-info{grid-template-columns:1fr}
+  .showcase{min-height:650px}
+  .actions{flex-direction:column}
+}
+</style>
+</head>
+<body>
+
+<div id="app">
+
+<section class="scene active" id="scene1">
+  <div class="header">
+    <div class="logo">四果汤 DIY<small>MINNAN SWEET SUMMER</small></div>
+    <div class="pill">Q版治愈小食堂</div>
+  </div>
+
+  <div class="hero">
+    <div class="hero-art">
+      <img src="images/flower.png" alt="">
+      <img src="images/style-zhangzhou.png" alt="漳州冰沙版">
+      <img src="images/flower.png" alt="">
+    </div>
+
+    <h1>今天想喝哪一碗<span>？</span></h1>
+    <p>挑选你喜爱的闽南风味，亲手放入超大份量、随性重力掉落的各种配料，定制专属于你的夏日清凉解暑神器。</p>
+
+    <div class="style-grid">
+      <div class="style-card zhangzhou" onclick="chooseStyle('zhangzhou')">
+        <img class="style-image" src="images/style-zhangzhou.png" alt="漳州冰沙版">
+        <div class="style-title">漳州冰沙版</div>
+        <div class="style-desc">绵绵冰沙 · 真实冰块堆叠</div>
+        <button type="button" class="choose-btn">选择这一碗</button>
+      </div>
+
+      <div class="style-card quanzhou" onclick="chooseStyle('quanzhou')">
+        <img class="style-image" src="images/style-quanzhou.png" alt="泉州清爽版">
+        <div class="style-title">泉州清爽版</div>
+        <div class="style-desc">清凉冰水 · 壶口倾注泉涌</div>
+        <button type="button" class="choose-btn">选择这一碗</button>
+      </div>
+    </div>
+
+    <div class="hint">点击卡片开启定制之旅</div>
+  </div>
+</section>
+
+<section class="scene" id="scene2">
+  <div class="header">
+    <div class="logo">四果汤 DIY<small>STEP 02 · GRAVITY TOPPINGS</small></div>
+    <div class="pill" id="styleBadge">漳州冰沙版</div>
+  </div>
+
+  <div class="worktop">
+    <div class="panel">
+      <div class="panel-title">配料小仓库</div>
+      <div class="ingredients" id="ingredients"></div>
+    </div>
+
+    <div class="center">
+      <div class="message">
+        <strong>把喜欢的都加进碗里</strong>
+        <span>超大尺寸小料 · 碗内及上方半碗空间自由错落堆满</span>
+      </div>
+
+      <div class="bowl-stage">
+        <div class="table-shadow"></div>
+        <div class="glass-bowl" id="glassBowl">
+          <div class="bowl-rim"></div>
+          <div class="bowl-fill">
+            <div id="ingredientPieces" class="ingredient-pieces"></div>
+          </div>
+          <div class="glass-shine"></div>
+        </div>
+      </div>
+
+      <div class="sugar-box">
+        <div class="sugar-title">糖水甜度偏好</div>
+        <div class="sugar-options">
+          <button type="button" class="sugar-option" onclick="setSugar(this,'少甜')">少甜</button>
+          <button class="sugar-option selected" onclick="setSugar(this,'标准')">标准</button>
+          <button type="button" class="sugar-option" onclick="setSugar(this,'多甜')">多甜</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel right-info">
+      <div class="tip">
+        <b>DIY 极致体验</b>
+        <small>配料采用大尺寸拟物设计，点击时会带有物理重力下落感，随机错落在碗底及高出碗口半个碗的空中，堆出超饱满视觉！</small>
+      </div>
+      <div class="tip">
+        <b>当前配料清单</b>
+        <small id="selectionText">还没有添加配料</small>
+      </div>
+      <div class="finish-ingredients" id="summary">共 0 份配料</div>
+      <button type="button" class="next-btn" onclick="goToSoul()">下一步：注入灵魂基底</button>
+    </div>
+  </div>
+</section>
+
+<section class="scene" id="scene3">
+  <div class="header">
+    <div class="logo">四果汤 DIY<small>STEP 03 · THE SOUL INJECTION</small></div>
+    <div class="pill">决胜最后一步</div>
+  </div>
+
+  <div class="soul-stage">
+    <div class="soul-card">
+      <div class="soul-hint">请赋予灵魂基底</div>
+      <h2 id="soulTitle">加一座绵绵冰沙山</h2>
+      <p id="soulDescription">将冰沙拖曳至碗上方释放</p>
+
+      <div class="soul-object">
+        <div class="drag-item" id="dragItem" draggable="false"></div>
+        <div class="drag-target" id="dragTarget">释放到这里</div>
+      </div>
+
+      <div class="soul-progress">支持流畅拖拽，也可直接轻触素材一步到位</div>
+    </div>
+  </div>
+</section>
+
+<section class="scene" id="scene4">
+  <div class="showcase">
+    <div class="sparkles" id="sparkles"></div>
+
+    <h2>你的专属四果汤完成啦</h2>
+    <p id="finalSubtitle">一口下去，整个夏天都变得冰爽甜蜜。</p>
+
+    <div class="final-bowl-wrap">
+      <div class="final-spoon">
+        <img src="images/spoon.png" alt="可爱汤匙">
+      </div>
+
+      <div class="final-bowl">
+        <div class="final-rim"></div>
+        <div id="finalPieces" class="final-pieces"></div>
+      </div>
+    </div>
+
+    <div class="final-info">
+      <span class="tag" id="finalStyle">漳州冰沙版</span>
+      <span class="tag" id="finalSugar">标准甜</span>
+      <span class="tag" id="finalCount">0 份配料</span>
+    </div>
+
+    <div class="actions">
+      <button type="button" class="action primary" onclick="saveCard()">生成心意卡片</button>
+      <button type="button" class="action" onclick="restart()">重新制作一碗</button>
+    </div>
+  </div>
+</section>
+
+</div>
+
+<div class="modal" id="cardModal">
+  <div class="card-preview">
+    <img src="images/style-zhangzhou.png" alt="" style="width:80px;height:80px;object-fit:contain">
+    <h3>我的专属四果汤</h3>
+    <div class="card-bowl" id="cardBowl"></div>
+    <div id="cardText"></div>
+    <p style="color:var(--muted);font-size:13px;margin-top:10px">闽南冰品小食堂 · 独家定制凭证</p>
+    <button type="button" class="close" onclick="closeModal()">收下精美卡片</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const game={
+  style:null,
+  sugar:"标准",
+  ingredients:{},
+  total:0,
+  finished:false
+};
+
+const ingredientData=[
+  {id:"watermelon",name:"西瓜",image:"images/watermelon.png"},
+  {id:"raisin",name:"葡萄干",image:"images/raisin.png"},
+  {id:"pineapple",name:"菠萝",image:"images/pineapple.png"},
+  {id:"grass",name:"石花膏",image:"images/grass.png"},
+  {id:"grassjelly",name:"白凉粉 / 仙草",image:"images/grass-jelly.png"},
+  {id:"tapioca",name:"阿达子",image:"images/adazai.png"},
+  {id:"redbean",name:"红豆",image:"images/red-bean.png"},
+  {id:"mungbean",name:"绿豆",image:"images/mung-bean.png"},
+  {id:"taro",name:"芋泥 / 紫薯泥",image:"images/taro.png"},
+  {id:"taroBall",name:"芋圆 / 地瓜圆",image:"images/taro-ball.png"},
+  {id:"coconut",name:"椰果",image:"images/coconut.png"},
+  {id:"candiedPineapple",name:"菠萝块 / 蜜饯",image:"images/candied-pineapple.png"}
+];
+
+let audioCtx=null;
+
+function sound(type="click"){
+  try{
+    if(!audioCtx) audioCtx=new(window.AudioContext||window.webkitAudioContext)();
+    if(audioCtx.state==="suspended") audioCtx.resume();
+
+    const osc=audioCtx.createOscillator();
+    const gain=audioCtx.createGain();
+    osc.connect(gain); gain.connect(audioCtx.destination);
+
+    const now=audioCtx.currentTime;
+
+    if(type==="finish"){
+      osc.type="sine";
+      osc.frequency.setValueAtTime(660,now);
+      osc.frequency.exponentialRampToValueAtTime(1320,now+.25);
+      gain.gain.setValueAtTime(.001,now);
+      gain.gain.exponentialRampToValueAtTime(.25,now+.02);
+      gain.gain.exponentialRampToValueAtTime(.001,now+.7);
+      osc.start(now); osc.stop(now+.7);
+      return;
+    }
+
+    if(type==="ice"){
+      osc.type="triangle";
+      osc.frequency.setValueAtTime(950,now);
+      osc.frequency.exponentialRampToValueAtTime(250,now+.35);
+      gain.gain.setValueAtTime(.001,now);
+      gain.gain.exponentialRampToValueAtTime(.2,now+.02);
+      gain.gain.exponentialRampToValueAtTime(.001,now+.35);
+      osc.start(now); osc.stop(now+.35);
+      return;
+    }
+
+    osc.type="sine";
+    osc.frequency.setValueAtTime(520,now);
+    osc.frequency.exponentialRampToValueAtTime(780,now+.08);
+    gain.gain.setValueAtTime(.001,now);
+    gain.gain.exponentialRampToValueAtTime(.12,now+.01);
+    gain.gain.exponentialRampToValueAtTime(.001,now+.12);
+    osc.start(now); osc.stop(now+.12);
+  }catch(e){}
+}
+
+function showScene(id){
+  document.querySelectorAll(".scene").forEach(s=>s.classList.remove("active"));
+  document.getElementById(id).classList.add("active");
+  window.scrollTo({top:0,behavior:"smooth"});
+}
+
+function chooseStyle(style){
+  if(game.style) return;
+  game.style=style;
+  sound("click");
+
+  const cards=document.querySelectorAll(".style-card");
+  const selected=style==="zhangzhou"?cards[0]:cards[1];
+
+  selected.animate(
+    [{transform:"scale(1)"},{transform:"scale(1.08)"},{transform:"scale(.96)"},{transform:"scale(1.03)"}],
+    {duration:500,easing:"cubic-bezier(.2,1.5,.4,1)"}
+  );
+
+  setTimeout(()=>{
+    document.getElementById("styleBadge").textContent=
+      style==="zhangzhou"?"漳州冰沙版":"泉州清爽版";
+    renderIngredients();
+    showScene("scene2");
+  },500);
+}
+
+document.addEventListener("click", function(e){
+  const card=e.target.closest(".style-card");
+  if(card && document.getElementById("scene1").classList.contains("active")){
+    chooseStyle(card.classList.contains("zhangzhou")?"zhangzhou":"quanzhou");
+  }
+});
+
+function renderIngredients(){
+  const box=document.getElementById("ingredients");
+  box.innerHTML="";
+
+  ingredientData.forEach(item=>{
+    const el=document.createElement("div");
+    el.className="ingredient";
+    el.dataset.id=item.id;
+
+    el.innerHTML=`
+      <div class="ingredient-image-wrap">
+        <img class="ingredient-image"
+             src="${item.image}"
+             alt="${item.name}"
+             draggable="false">
+      </div>
+      <span class="name">${item.name}</span>
+      <div><span class="counter" id="counter-${item.id}">0</span></div>
+    `;
+
+    el.addEventListener("click",()=>addIngredient(item,el));
+    box.appendChild(el);
+  });
+}
+
+function addIngredient(item,source){
+  sound("click");
+
+  game.ingredients[item.id]=(game.ingredients[item.id]||0)+1;
+  game.total++;
+
+  document.getElementById("counter-"+item.id).textContent=game.ingredients[item.id];
+
+  const piece=document.createElement("div");
+  piece.className="piece";
+  
+  // 覆盖整碗到底部及上方半碗高度空间（bottom从12%到86%）
+  const randomX = 10 + Math.random() * 75;
+  const randomY = 12 + Math.random() * 74;
+  const randomRotate = (Math.random() - 0.5) * 65;
+
+  piece.style.left = randomX + "%";
+  piece.style.bottom = randomY + "%";
+  piece.style.transform = `rotate(${randomRotate}deg)`;
+
+  piece.innerHTML=`<img src="${item.image}" alt="${item.name}" draggable="false">`;
+  document.getElementById("ingredientPieces").appendChild(piece);
+
+  createFlyingImage(item.image,source,document.getElementById("glassBowl"));
+  updateSummary();
+}
+
+function createFlyingImage(image,source,target){
+  const s=source.getBoundingClientRect();
+  const t=target.getBoundingClientRect();
+
+  const fly=document.createElement("img");
+  fly.className="fly-piece";
+  fly.src=image;
+  fly.alt="";
+  fly.draggable=false;
+  fly.style.left=(s.left+s.width/2-42)+"px";
+  fly.style.top=(s.top+s.height/2-37)+"px";
+  fly.style.setProperty("--dx",(t.left+t.width/2-s.left-s.width/2)+"px");
+  fly.style.setProperty("--dy",(t.top+t.height/2-s.top-s.height/2)+"px");
+
+  document.body.appendChild(fly);
+  setTimeout(()=>fly.remove(),700);
+}
+
+function updateSummary(){
+  const summary=document.getElementById("summary");
+  const selection=document.getElementById("selectionText");
+
+  if(game.total===0){
+    summary.textContent="共 0 份配料";
+    selection.textContent="还没有添加配料";
+    return;
+  }
+
+  summary.textContent=`共 ${game.total} 份配料 · 爆满重力堆叠中`;
+
+  const names=[];
+  ingredientData.forEach(item=>{
+    const count=game.ingredients[item.id]||0;
+    if(count>0) names.push(`${item.name} ×${count}`);
+  });
+  selection.textContent=names.join("　");
+}
+
+function setSugar(btn,sugar){
+  sound("click");
+  game.sugar=sugar;
+  document.querySelectorAll(".sugar-option").forEach(b=>b.classList.remove("selected"));
+  btn.classList.add("selected");
+}
+
+function goToSoul(){
+  if(game.total===0){
+    toast("请先挑选几样美味小料哦");
+    return;
+  }
+  game.finished=false;
+  setupSoulScene();
+  showScene("scene3");
+}
+
+function setupSoulScene(){
+  const item=document.getElementById("dragItem");
+  const title=document.getElementById("soulTitle");
+  const desc=document.getElementById("soulDescription");
+
+  item.innerHTML="";
+
+  if(game.style==="zhangzhou"){
+    title.textContent="加入绵绵冰沙";
+    desc.textContent="把冰沙山拖曳到四果汤上方，让晶莹冰块倾泻而下";
+    item.className="drag-item";
+    item.innerHTML=`<img class="drag-image" src="images/ice-mountain.png" alt="绵绵冰沙">`;
+  }else{
+    title.textContent="倒入清凉冰泉";
+    desc.textContent="把冰泉壶拖曳到四果汤上方，让清澈冰水泉涌注入";
+    item.className="drag-item";
+    item.innerHTML=`<img class="drag-image" src="images/water-jug.png" alt="清凉冰泉壶">`;
+  }
+
+  setupDrag(item);
+}
+
+function setupDrag(item){
+  const target=document.getElementById("dragTarget");
+  let dragging=false;
+
+  item.onpointerdown=function(e){
+    dragging=true;
+    item.setPointerCapture(e.pointerId);
+    item.style.position="fixed";
+    item.style.left=(e.clientX-135)+"px";
+    item.style.top=(e.clientY-155)+"px";
+    item.style.animation="none";
+  };
+
+  item.onpointermove=function(e){
+    if(!dragging)return;
+    item.style.left=(e.clientX-135)+"px";
+    item.style.top=(e.clientY-155)+"px";
+
+    const tr=target.getBoundingClientRect();
+    const inside=e.clientX>tr.left&&e.clientX<tr.right&&e.clientY>tr.top&&e.clientY<tr.bottom;
+    target.classList.toggle("active",inside);
+  };
+
+  item.onpointerup=function(e){
+    if(!dragging)return;
+    dragging=false;
+
+    const tr=target.getBoundingClientRect();
+    const inside=e.clientX>tr.left&&e.clientX<tr.right&&e.clientY>tr.top&&e.clientY<tr.bottom;
+
+    if(inside){
+      finishSoul();
+    }else{
+      item.style.position="relative";
+      item.style.left="";
+      item.style.top="";
+      item.style.animation="";
+    }
+    target.classList.remove("active");
+  };
+
+  item.onclick=function(){
+    if(!dragging) finishSoul();
+  };
+}
+
+function finishSoul(){
+  if(game.finished)return;
+  game.finished=true;
+
+  sound("ice");
+  setTimeout(()=>sound("finish"),220);
+
+  const glassBowl = document.getElementById("glassBowl");
+  const wave = document.createElement("div");
+  wave.className = "water-wave-effect";
+  glassBowl.appendChild(wave);
+
+  // 漳州版：真实冰块从天而降砸入碗中；泉州版：清澈冰水流从壶口倾注
+  if(game.style === "zhangzhou"){
+    for(let i=0; i<9; i++){
+      const ice = document.createElement("div");
+      ice.className = "ice-drop";
+      ice.style.left = (12 + Math.random() * 75) + "%";
+      ice.style.bottom = (28 + Math.random() * 50) + "%";
+      ice.style.animationDelay = (i * 0.07) + "s";
+      glassBowl.appendChild(ice);
+    }
+  } else {
+    const stream = document.createElement("div");
+    stream.className = "water-pour-stream";
+    glassBowl.appendChild(stream);
+  }
+
+  const item=document.getElementById("dragItem");
+  item.style.pointerEvents="none";
+
+  item.animate(
+    game.style==="zhangzhou"
+    ? [
+        {transform:"translateY(0)"},
+        {transform:"translateY(110px) scale(1.08)"},
+        {transform:"translateY(180px) scale(.45)",opacity:0}
+      ]
+    : [
+        {transform:"rotate(0)"},
+        {transform:"rotate(65deg) translateY(80px)"},
+        {transform:"rotate(90deg) translateY(130px)",opacity:0}
+      ],
+    {duration:850,easing:"cubic-bezier(.2,1.3,.4,1)"}
+  );
+
+  setTimeout(()=>{
+    prepareFinalScene();
+    showScene("scene4");
+  },900);
+}
+
+function prepareFinalScene(){
+  document.getElementById("finalStyle").textContent=
+    game.style==="zhangzhou"?"漳州冰沙版":"泉州清爽版";
+
+  document.getElementById("finalSugar").textContent=`${game.sugar}甜`;
+  document.getElementById("finalCount").textContent=`${game.total} 份配料`;
+
+  document.getElementById("finalSubtitle").textContent=
+    game.style==="zhangzhou"
+    ?"绵绵冰沙与晶莹冰块完美融合，夏日冰爽感爆棚"
+    :"清澈泉水与满碗冰感注入，清甜爽口直击心灵";
+
+  createFinalPieces();
+  createSparkles();
+}
+
+function createFinalPieces(){
+  const box=document.getElementById("finalPieces");
+  box.innerHTML="";
+
+  const all=[];
+  ingredientData.forEach(item=>{
+    const count=game.ingredients[item.id]||0;
+    for(let i=0;i<count;i++) all.push(item);
+  });
+
+  all.slice(0,38).forEach(item=>{
+    const img=document.createElement("img");
+    img.src=item.image;
+    img.alt=item.name;
+    img.draggable=false;
+    const rx = 10 + Math.random() * 78;
+    const ry = 12 + Math.random() * 75;
+    const r = (Math.random() - 0.5) * 65;
+    img.style.position = "absolute";
+    img.style.left = rx + "%";
+    img.style.bottom = ry + "%";
+    img.style.width = "78px";
+    img.style.height = "68px";
+    img.style.objectFit = "contain";
+    img.style.transform = `rotate(${r}deg)`;
+    img.style.filter = "drop-shadow(0 4px 6px rgba(100,72,61,0.22))";
+    box.appendChild(img);
+  });
+
+  // 如果是漳州版，最终成品展示中附带高质感真实冰块
+  if(game.style === "zhangzhou"){
+    for(let i=0; i<5; i++){
+      const ice = document.createElement("div");
+      ice.className = "ice-drop";
+      ice.style.position = "absolute";
+      ice.style.left = (18 + Math.random() * 64) + "%";
+      ice.style.bottom = (35 + Math.random() * 40) + "%";
+      box.appendChild(ice);
+    }
+  }
+}
+
+function createSparkles(){
+  const box=document.getElementById("sparkles");
+  box.innerHTML="";
+
+  for(let i=0;i<26;i++){
+    const s=document.createElement("div");
+    s.className="spark";
+    s.style.left=Math.random()*100+"%";
+    s.style.top=(-10-Math.random()*30)+"%";
+    s.style.animationDelay=Math.random()*2+"s";
+    s.style.animationDuration=(2.5+Math.random()*2)+"s";
+    box.appendChild(s);
+  }
+}
+
+function saveCard(){
+  sound("finish");
+
+  const cardBowl=document.getElementById("cardBowl");
+  cardBowl.innerHTML="";
+
+  ingredientData.forEach(item=>{
+    const count=game.ingredients[item.id]||0;
+    for(let i=0;i<Math.min(count,4);i++){
+      const img=document.createElement("img");
+      img.src=item.image;
+      img.alt="";
+      const rx = 10 + Math.random() * 75;
+      const ry = 10 + Math.random() * 70;
+      const r = (Math.random() - 0.5) * 55;
+      img.style.left = rx + "%";
+      img.style.bottom = ry + "%";
+      img.style.width = "66px";
+      img.style.height = "56px";
+      img.style.transform = `rotate(${r}deg)`;
+      cardBowl.appendChild(img);
+    }
+  });
+
+  document.getElementById("cardText").innerHTML=`
+    <div style="margin:8px 0;font-size:18px"><b>${game.style==="zhangzhou"?"漳州冰沙版":"泉州清爽版"}</b></div>
+    <div style="margin:6px 0;color:var(--muted)">${game.sugar}甜 · 共加入 ${game.total} 份爆满小料</div>
+  `;
+
+  document.getElementById("cardModal").classList.add("show");
+  toast("专属心意卡片生成成功！");
+}
+
+function closeModal(){
+  document.getElementById("cardModal").classList.remove("show");
+}
+
+function restart(){
+  document.getElementById("cardModal").classList.remove("show");
+  game.style=null;
+  game.sugar="标准";
+  game.ingredients={};
+  game.total=0;
+  game.finished=false;
+
+  document.getElementById("ingredientPieces").innerHTML="";
+  document.querySelectorAll(".style-card").forEach(card=>card.style.pointerEvents="");
+  document.querySelectorAll(".sugar-option").forEach(btn=>btn.classList.remove("selected"));
+  document.querySelector(".sugar-option:nth-child(2)").classList.add("selected");
+
+  showScene("scene1");
+}
+
+let toastTimer;
+function toast(text){
+  const el=document.getElementById("toast");
+  el.textContent=text;
+  el.classList.add("show");
+  clearTimeout(toastTimer);
+  toastTimer=setTimeout(()=>el.classList.remove("show"),1800);
+}
+
+document.addEventListener("keydown",e=>{
+  if(e.key==="Escape")closeModal();
+});
+
+
+window.addEventListener("load",()=>{
+  const required=[
+    "images/style-zhangzhou.png","images/style-quanzhou.png",
+    "images/watermelon.png","images/raisin.png","images/pineapple.png",
+    "images/grass.png","images/grass-jelly.png","images/adazai.png",
+    "images/red-bean.png","images/mung-bean.png","images/taro.png",
+    "images/taro-ball.png","images/coconut.png","images/candied-pineapple.png",
+    "images/ice-mountain.png","images/water-jug.png","images/spoon.png",
+    "images/sparkle.png"
+  ];
+  const missing=[];
+  required.forEach(src=>{
+    const im=new Image();
+    im.onerror=()=>{if(!missing.includes(src)) missing.push(src);};
+    im.src=src;
+  });
+  setTimeout(()=>{
+    if(missing.length) toast("提示：部分PNG图片未找到，请确保 images 文件夹与HTML同级");
+  },700);
+});
+</script>
+</body>
+</html>
